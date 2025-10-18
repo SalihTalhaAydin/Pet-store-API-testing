@@ -3,7 +3,7 @@ import { faker } from "@faker-js/faker";
 import { z } from "zod";
 import { getAPI, postAPI, putAPI, deleteAPI } from "../utils/apiCallHelper";
 
-test.describe("Create, Get, Update, Delete User", () => {
+test.describe("Login and Logout API Tests", () => {
   const BASE_URL = `${process.env.BASE_URL}${process.env.API_VERSION}`;
 
   const createUserRequestBody = {
@@ -24,17 +24,6 @@ test.describe("Create, Get, Update, Delete User", () => {
   });
 
   const username = createUserRequestBody.username;
-  const expectedGetUserResponseSchema = z.object({
-    id: z.number(),
-    username: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.string().email(),
-    password: z.string(),
-    phone: z.string(),
-    userStatus: z.number(),
-  });
-
 
   const expectedDeleteUserResponseSchema = z.object({
     code: z.literal(200),
@@ -42,10 +31,14 @@ test.describe("Create, Get, Update, Delete User", () => {
     message: z.literal(username),
   });
 
-  test("End-to-end test flow for User APIs - Create, Get, Put, Delete (CRUD operations)", async ({
-    request,
-  }) => {
-    // Post -> Create a user
+  const expectedLoginLogoutUserResponseSchema = z.object({
+    code: z.literal(200),
+    type: z.literal("unknown"),
+    message: z.string(),
+  });
+
+  test.beforeEach(async ({ request }) => {
+    console.log("Creating user before each test...");
     await postAPI(
       request,
       `${BASE_URL}/user`,
@@ -53,20 +46,10 @@ test.describe("Create, Get, Update, Delete User", () => {
       200,
       expectedCreateUserResponseSchema
     );
+  });
 
-    // Get -> Get created user
-    await getAPI(request,`${BASE_URL}/user/${username}`,200,expectedGetUserResponseSchema);
-
-    // Put -> Update user details (not implemented)
-    await putAPI(
-      request,
-      `${BASE_URL}/user/${username}`,
-      { ...createUserRequestBody, firstName: faker.person.firstName() },
-      200,
-      expectedCreateUserResponseSchema
-    );
-
-    // Delete -> Delete created user
+  test.afterEach(async ({ request }) => {
+    console.log("Deleting user after each test...");
     await deleteAPI(
       request,
       `${BASE_URL}/user/${username}`,
@@ -74,4 +57,27 @@ test.describe("Create, Get, Update, Delete User", () => {
       expectedDeleteUserResponseSchema
     );
   });
+
+  test("Logs user into system", async ({ request }) => {
+    await getAPI(
+      request,
+      `${BASE_URL}/user/login`,
+      200,
+      expectedLoginLogoutUserResponseSchema,
+      { username: username, password: createUserRequestBody.password }
+    );
+  });
+
+  test("Logs out current logged in user", async ({ request }) => {
+    await getAPI(
+      request,
+      `${BASE_URL}/user/logout`,
+      200,
+      expectedLoginLogoutUserResponseSchema
+    );
+  });
+
+  test("Invalid login attempt with wrong credentials", async ({ request }) => {
+    
+  })
 });
