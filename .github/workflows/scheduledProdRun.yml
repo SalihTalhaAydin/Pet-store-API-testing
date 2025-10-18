@@ -19,6 +19,12 @@ jobs:
     # Use a computer running Ubuntu Linux (GitHub provides this for free!)
     runs-on: ubuntu-latest
     
+    # Give this workflow permission to write to the repository
+    permissions:
+      contents: write  # Allows pushing to gh-pages branch
+      pages: write     # Allows deploying to GitHub Pages
+      id-token: write  # Required for Pages deployment
+    
     # The steps are like a recipe - do them in order, one by one
     steps:
       # Step 1: Get a copy of your code from GitHub
