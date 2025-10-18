@@ -1,5 +1,5 @@
 # This is the name that shows up in GitHub Actions tab
-name: Scheduled API Tests
+name: Scheduled API Tests for Dev
 
 # When should this workflow run?
 on:
